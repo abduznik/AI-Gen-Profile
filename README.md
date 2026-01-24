@@ -13,9 +13,15 @@ The ultimate GitHub Profile README generator.
 
 1. **PowerShell**
 2. **Gemini CLI**
+   - Install via npm: `npm install -g @google/gemini-cli`
+   - Run once to authenticate: `gemini chat`
 3. **GitHub CLI**
+   - Install via Winget: `winget install GitHub.cli`
+   - Authenticate: `gh auth login`
 
 ## Installation
+
+Run this command in PowerShell to install:
 
 ```powershell
 irm https://raw.githubusercontent.com/abduznik/AI-Gen-Profile/main/setup.ps1 | iex
@@ -25,12 +31,10 @@ irm https://raw.githubusercontent.com/abduznik/AI-Gen-Profile/main/setup.ps1 | i
 
 Type `gen-profile` in PowerShell.
 
-1. It fetches your current `username/username` README.
-2. It fetches your public repositories.
-3. Gemini groups your projects and writes a new "Featured Work" section.
-4. It combines your old header with the new list and saves it to `PROFILE_DRAFT.md`.
-5. You can then copy it to your actual profile.
+1. **First Run:** It fetches your *current* profile to learn your style and creates a local `skeleton.md`.
+2. **Subsequent Runs:** It fetches your latest repositories, categorizes them using AI, and fills the skeleton with fresh data.
+3. **Review:** It saves the result to `PROFILE_DRAFT.md`. Copy this to your `username/username` repository.
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
