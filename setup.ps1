@@ -1,17 +1,21 @@
 $installDir = "$HOME\AI-Gen-Profile"
 $targetFile = "$installDir\script.ps1"
+$skeletonFile = "$installDir\skeleton.md"
+
 $sourceUrl = "https://raw.githubusercontent.com/abduznik/AI-Gen-Profile/main/script.ps1"
+$skeletonUrl = "https://raw.githubusercontent.com/abduznik/AI-Gen-Profile/main/skeleton.md"
 
 Write-Host "Installing Abduznik's AI Profile Generator..." -ForegroundColor Cyan
 
 # 1. Create Directory
 New-Item -ItemType Directory -Force -Path $installDir | Out-Null
 
-# 2. Download Tool
+# 2. Download Tool & Skeleton
 try {
     Invoke-WebRequest -Uri $sourceUrl -OutFile $targetFile -ErrorAction Stop
+    Invoke-WebRequest -Uri $skeletonUrl -OutFile $skeletonFile -ErrorAction Stop
 } catch {
-    Write-Host "Failed to download script from GitHub. Check your internet or URL." -ForegroundColor Red
+    Write-Host "Failed to download components from GitHub." -ForegroundColor Red
     exit 1
 }
 
@@ -26,8 +30,6 @@ $profileContent = Get-Content $PROFILE -Raw -ErrorAction SilentlyContinue
 if ($profileContent -notlike "*$targetFile*") {
     Add-Content -Force $PROFILE "`n$loadCmd"
     Write-Host "Added to PowerShell profile." -ForegroundColor Green
-} else {
-    Write-Host "Already in profile." -ForegroundColor Yellow
 }
 
 # 4. Load for current session

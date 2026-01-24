@@ -139,6 +139,7 @@ Do not use markdown code blocks in the JSON values.
         
         # 5. Fill the Skeleton
         $finalMd = $skeletonContent
+        $finalMd = $finalMd.Replace("{{USERNAME}}", $currentUser)
         
         # We use strict replacement to avoid regex errors with special chars in bio
         if ($data.embedded) { $finalMd = $finalMd.Replace("{{SECTION_EMBEDDED}}", $data.embedded) }
