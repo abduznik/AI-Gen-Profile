@@ -14,20 +14,7 @@ I build tools that bridge the gap between hardware, software, and productivity. 
 
 ---
 
-## Embedded Systems & Hardware
-*Low-level communication and hardware drivers.*
-
-{{SECTION_EMBEDDED}}
-
-## Featured Obsidian Plugins
-*Enhancing the "second brain" with AI and automation.*
-
-{{SECTION_OBSIDIAN}}
-
-## Game Development & Graphics
-{{SECTION_GAMEDEV}}
-
-{{SECTION_OTHER}}
+{{DYNAMIC_PROJECTS}}
 
 ---
 *Check out my repositories below for more tools and experiments.*
