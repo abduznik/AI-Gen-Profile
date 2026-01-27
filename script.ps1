@@ -1,6 +1,6 @@
 # ==========================================
 #  ABDUZNIK'S AI PROFILE GENERATOR
-#  Current Version: v2.8 (Markdown Injector)
+#  Current Version: v2.9 (Multi-Model Support)
 # ==========================================
 
 function gen-profile {
@@ -8,7 +8,7 @@ function gen-profile {
         [switch]$ResetSkeleton
     )
 
-    $ToolVersion = "2.8"
+    $ToolVersion = "2.9"
     $InstallDir = "$HOME\AI-Gen-Profile"
     $SkeletonFile = "$InstallDir\skeleton.md"
 
@@ -82,10 +82,66 @@ function gen-profile {
 
     Write-Host "  Gemini is categorizing $($repoLookup.Count) projects..." -ForegroundColor Cyan
 
+    # Priority: Smartest (Gemini 3) -> High Bandwidth (Gemma 3) -> Fallback (Flash)
+    $ModelList = @("gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemma-3-27b-it")
+
     # Prompt: "Just give me the headers and the list of names"
     $fillPrompt = "Task: Group these repositories into 3-6 categories. Input:`n$repoListString`n`nInstructions:`n1. Use '## Category Name' for titles.`n2. Under each title, list the repo names as bullet points: '* RepoName'.`n3. Do NOT add descriptions or links yet.`n4. OUTPUT MARKDOWN ONLY. No conversational text."
 
-    $aiOutput = cmd /c "gemini ""$fillPrompt"" 2>&1"
+    $aiOutput = $null
+    $success = $false
+
+    foreach ($model in $ModelList) {
+        Write-Host "   -> Attempting with model: $model..." -ForegroundColor DarkGray
+        
+        try {
+            if (Test-Path "/usr/local/bin/gemini") {
+                # Docker path
+                $currentRun = & /usr/local/bin/gemini $fillPrompt --model $model 2>&1 | Out-String
+            } else {
+                # Standard path
+                $currentRun = & gemini $fillPrompt --model $model 2>&1 | Out-String
+            }
+        } catch {
+            $currentRun = "Error: " + $_.Exception.Message
+        }
+
+        # Cleanup Warnings
+        if ($currentRun -match "Both GOOGLE_API_KEY and GEMINI_API_KEY are set") {
+             $currentRun = $currentRun -replace "Both GOOGLE_API_KEY and GEMINI_API_KEY are set\. Using GOOGLE_API_KEY\.", ""
+        }
+        $currentRun = $currentRun.Trim()
+
+        # Validation for Profile (Expect Markdown Headers or bullets)
+        if ($currentRun -match "##" -or $currentRun -match "\* ") {
+             $aiOutput = $currentRun
+             $success = $true
+             break
+        }
+        
+        # Quota Check
+        if ($currentRun -match "429" -or $currentRun -match "exhausted" -or $currentRun -match "Quota") {
+            Write-Host "      [!] Quota hit on $model. Pausing 3s..." -ForegroundColor Yellow
+            Start-Sleep -Seconds 3
+            continue
+        }
+        # Generic Error
+        elseif ($currentRun -match "Error" -or $currentRun -match "Exception") {
+             Write-Host "      [DEBUG] $currentRun" -ForegroundColor Red
+             Write-Host "      [!] Generic error on $model. Switching..." -ForegroundColor Yellow
+             Start-Sleep -Seconds 1
+             continue
+        }
+        else {
+             Write-Host "      [!] Invalid output format. Switching..." -ForegroundColor Yellow
+             continue
+        }
+    }
+
+    if (-not $success) {
+        Write-Host "`n[CRITICAL ERROR] ALL MODELS EXHAUSTED" -ForegroundColor Red
+        return
+    }
     
     $rawMd = $aiOutput | Where-Object { $_ -notmatch "\[STARTUP\]" -and $_ -notmatch "Loaded cached" } | Out-String
     $rawMd = $rawMd -replace '```markdown', '' -replace '```', ''
