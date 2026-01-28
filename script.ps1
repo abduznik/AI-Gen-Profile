@@ -26,6 +26,9 @@ function gen-profile {
         return
     }
     Write-Host "Authenticated as: $currentUser" -ForegroundColor Gray
+    
+    # CRITICAL FIX: Tell Git to use the GitHub CLI token for authentication
+    gh auth setup-git 2>$null
 
     # --- PHASE 0: DISCOVERY & STRATEGY ---
     $strategy = "FULL_GEN"
